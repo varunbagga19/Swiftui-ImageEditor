@@ -50,14 +50,7 @@ class FiltersViewModel: ObservableObject {
         self.ciUnmasksharpVal = savedFilter.sharpness
         self.selectedFilter = savedFilter.filter
         
-        guard let imageData = self.imageData else { return }
-        
-        guard let ciImage = CIImage(data: imageData) else { return }
-        
-        guard let mainView = self.mainView else { return }
-        
-     
-        applyFilter()
+        apply()
         
     }
 
@@ -103,11 +96,11 @@ class FiltersViewModel: ObservableObject {
         print("inside color correction")
         DispatchQueue.global(qos: .userInteractive).async {
             // loading image into filter
-            guard let imageData = self.imageData else { return }
-            
-            guard let ciImage = CIImage(data: imageData) else { return }
-            
-            guard let mainView = self.mainView else { return }
+//            guard let imageData = self.imageData else { return }
+//            
+//            guard let ciImage = CIImage(data: imageData) else { return }
+//            
+//            guard let mainView = self.mainView else { return }
             
             
             let filter = CIFilter.colorControls()
@@ -138,27 +131,27 @@ class FiltersViewModel: ObservableObject {
             // retreive filtered image
             guard let newImage = unMaskSharpFilter.outputImage else { return }
             
+            return newImage
             // create UIImage
-            guard let cgImage = self.context.createCGImage(newImage, from: newImage.extent) else { return }
-            
-            DispatchQueue.main.async {
-                self.mainView = UIImage(cgImage: cgImage, scale: mainView.scale, orientation: mainView.imageOrientation)
-            }
+//            guard let cgImage = self.context.createCGImage(newImage, from: newImage.extent) else { return }
+////            
+////            DispatchQueue.main.async {
+////                self.mainView = UIImage(cgImage: cgImage, scale: mainView.scale, orientation: mainView.imageOrientation)
+////            }
         }
     }
     
   
     func applyFilter(on ciImage:CIImage) -> CIImage {
-        let context = CIContext()
         
         DispatchQueue.global(qos: .userInteractive).async {
             // loading image into filter
-            guard let imageData = self.imageData else { return }
-            
-            guard let ciImage = CIImage(data: imageData) else { return }
+//            guard let imageData = self.imageData else { return }
+//            
+//            guard let ciImage = CIImage(data: imageData) else { return }
             guard let filter = self.selectedFilter else { return }
             
-            guard let mainView = self.mainView else { return }
+//            guard let mainView = self.mainView else { return }
             
             print("inside filter")
             filter.filterType.setValue(ciImage, forKey: kCIInputImageKey)
@@ -236,12 +229,14 @@ class FiltersViewModel: ObservableObject {
             // retreive filtered image
             guard let newImage = filter.filterType.outputImage else { return }
             
-            // create UIImage
-            guard let cgImage = context.createCGImage(newImage, from: newImage.extent) else { return }
             
-            DispatchQueue.main.async {
-                self.mainView = UIImage(cgImage: cgImage, scale: mainView.scale, orientation: mainView.imageOrientation)
-            }
+            return newImage
+            // create UIImage
+//            guard let cgImage = context.createCGImage(newImage, from: newImage.extent) else { return }
+//            
+//            DispatchQueue.main.async {
+//                self.mainView = UIImage(cgImage: cgImage, scale: mainView.scale, orientation: mainView.imageOrientation)
+//            }
         }
     }
     
