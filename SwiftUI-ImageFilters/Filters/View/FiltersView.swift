@@ -42,35 +42,45 @@ struct FiltersView: View {
                             VStack(spacing: 0) {
                                 Text("Contrast \(filtersViewModel.contrast)")
                                 Slider(value: $filtersViewModel.contrast, in: 0.5...1.3) { value in
-                                    filtersViewModel.applyColorCorrection()
+                                    filtersViewModel.apply { filteredImage in
+                                        filtersViewModel.mainView = filteredImage
+                                    }
                                 }
                             }
                            
                             VStack(spacing: 0) {
                                 Text("Brightness \(filtersViewModel.brightness)")
                                 Slider(value: $filtersViewModel.brightness, in: -0.5...0.5) { _ in
-                                    filtersViewModel.applyColorCorrection()
+                                    filtersViewModel.apply { filteredImage in
+                                        filtersViewModel.mainView = filteredImage
+                                    }
                                 }
                             }
                             
                             VStack(spacing: 0) {
                                 Text("Saturation \(filtersViewModel.saturation)")
                                 Slider(value: $filtersViewModel.saturation, in: 0 ... 1.5) { _ in
-                                    filtersViewModel.applyColorCorrection()
+                                    filtersViewModel.apply { filteredImage in
+                                        filtersViewModel.mainView = filteredImage
+                                    }
                                 }
                             }
                             
                             VStack(spacing: 0) {
                                 Text("UnmaskSharpness \(filtersViewModel.ciUnmasksharpVal)")
                                 Slider(value: $filtersViewModel.ciUnmasksharpVal, in: 0.0...14.0) { _ in
-                                    filtersViewModel.applyColorCorrection()
+                                    filtersViewModel.apply { filteredImage in
+                                        filtersViewModel.mainView = filteredImage
+                                    }
                                 }
                             }
                         }
                         
                         if filtersViewModel.isEditable {
                             Slider(value: $filtersViewModel.value, in: 0 ... 1) { _ in
-                                filtersViewModel.applyFilter()
+                                filtersViewModel.apply { filteredImage in
+                                    filtersViewModel.mainView = filteredImage
+                                }
                             }
                         }
                         
@@ -158,7 +168,9 @@ struct FilterView: View {
                         // Update main view with filter
                         filtersViewModel.value = 1.0
                         filtersViewModel.selectedFilter = filter
-                        filtersViewModel.applyFilter()
+                        filtersViewModel.apply { filteredImage in
+                            filtersViewModel.mainView = filteredImage
+                        }
                     } label: {
                         Text(filter.filterName)
                             .padding()

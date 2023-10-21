@@ -50,7 +50,12 @@ class FiltersViewModel: ObservableObject {
         self.ciUnmasksharpVal = savedFilter.sharpness
         self.selectedFilter = savedFilter.filter
         
-        apply()
+        apply { filteredImage in
+            if let filteredImage = filteredImage {
+                // Update UI with the filtered image
+                self.mainView = filteredImage
+            }
+        }
         
     }
 
@@ -70,29 +75,52 @@ class FiltersViewModel: ObservableObject {
     //MARK: - Normal Featuers method
     
     
-    func apply() {
-        guard let imageData = self.imageData else { return }
+    func apply(completion: @escaping (UIImage?) -> Void) {
+        guard let imageData = self.imageData else {
+            completion(nil)
+            return
+        }
         
-        guard let ciImage = CIImage(data: imageData) else { return }
+        guard let ciImage = CIImage(data: imageData) else {
+            completion(nil)
+            return
+        }
         
-        guard let mainView = self.mainView else { return }
-        
-        let colorCorrectedImage = applyColorCorrection(on: ciImage)
-        
-        let appliedFilterImage = applyFilter(on: colorCorrectedImage)
-        
-        guard let cgImage = self.context.createCGImage(appliedFilterImage, from: appliedFilterImage.extent) else { return }
-        
-        DispatchQueue.main.async {
-            self.mainView = UIImage(cgImage: cgImage, scale: mainView.scale, orientation: mainView.imageOrientation)
+        // Apply color correction asynchronously
+        applyColorCorrection(on: ciImage) { correctedImage in
+            guard let correctedImage = correctedImage else {
+                completion(nil)
+                return
+            }
+            
+            // Apply selected filter asynchronously
+            self.applyFilter(on: correctedImage) { filteredImage in
+                guard let filteredImage = filteredImage else {
+                    completion(nil)
+                    return
+                }
+                
+                // Create CGImage from filtered CIImage
+                guard let cgImage = self.context.createCGImage(filteredImage, from: filteredImage.extent) else {
+                    completion(nil)
+                    return
+                }
+                
+                // Create UIImage from CGImage
+                let finalImage = UIImage(cgImage: cgImage, scale: self.mainView?.scale ?? 1.0, orientation: self.mainView?.imageOrientation ?? .up)
+                
+                // Call the completion handler with the final image
+                completion(finalImage)
+            }
         }
     }
+
     
     
     
     
-    func applyColorCorrection(on ciImage:CIImage) -> CIImage {
-        
+    func applyColorCorrection(on ciImage: CIImage, completion: @escaping (CIImage?) -> Void) {
+
         print("inside color correction")
         DispatchQueue.global(qos: .userInteractive).async {
             // loading image into filter
@@ -131,19 +159,16 @@ class FiltersViewModel: ObservableObject {
             // retreive filtered image
             guard let newImage = unMaskSharpFilter.outputImage else { return }
             
-            return newImage
-            // create UIImage
-//            guard let cgImage = self.context.createCGImage(newImage, from: newImage.extent) else { return }
-////            
-////            DispatchQueue.main.async {
-////                self.mainView = UIImage(cgImage: cgImage, scale: mainView.scale, orientation: mainView.imageOrientation)
-////            }
+            DispatchQueue.main.async {
+                       completion(newImage)
+            }
+          
         }
     }
     
   
-    func applyFilter(on ciImage:CIImage) -> CIImage {
-        
+    func applyFilter(on ciImage: CIImage, completion: @escaping (CIImage?) -> Void) {
+
         DispatchQueue.global(qos: .userInteractive).async {
             // loading image into filter
 //            guard let imageData = self.imageData else { return }
@@ -230,13 +255,9 @@ class FiltersViewModel: ObservableObject {
             guard let newImage = filter.filterType.outputImage else { return }
             
             
-            return newImage
-            // create UIImage
-//            guard let cgImage = context.createCGImage(newImage, from: newImage.extent) else { return }
-//            
-//            DispatchQueue.main.async {
-//                self.mainView = UIImage(cgImage: cgImage, scale: mainView.scale, orientation: mainView.imageOrientation)
-//            }
+            DispatchQueue.main.async {
+                completion(newImage)
+            }
         }
     }
     
